@@ -7,6 +7,9 @@ Major Changes
 
 * correct indent after entering <CR>
 
+* When a parentheses is created next a non-whitespace character,
+do not auto create another parentheses
+
 Installation
 ------------
 

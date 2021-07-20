@@ -204,6 +204,22 @@ func! AutoPairsInsert(key)
 
   let [before, after, afterline] = s:getline()
 
+  " When a parentheses is created next a non-whitespace character,
+  " do not auto create another parentheses
+  " (see https://github.com/jiangmiao/auto-pairs/issues/194)
+  if len(after) > 0 && after[0] != ' '
+	  let can_proceed = 0
+	  for [open, close, opt] in b:AutoPairsList
+		  if after[0] == close
+			let can_proceed = 1
+			break
+		  end
+	  endfor
+	  if !(can_proceed)
+		return a:key
+	  end
+  end
+
   " Ignore auto close if prev character is \
   if before[-1:-1] == '\'
 	return a:key
@@ -413,7 +429,8 @@ func! AutoPairsReturn()
 	  if &filetype == 'coffeescript' || &filetype == 'coffee'
 		return "\<ESC>".cmd."k==o"
 	  else
-		return "\<ESC>".cmd."=ko"
+		" return "\<ESC>".cmd."=ko"
+		return "\<BS>\<ESC>O"
 	  endif
 	end
   endfor
