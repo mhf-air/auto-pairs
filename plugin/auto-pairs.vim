@@ -114,9 +114,19 @@ let s:Right = s:Go."\<RIGHT>"
 
 
 
-func! s:js(before)
+func! s:js(before, after)
 	let before = trim(a:before)
-	if before[-1:] == "("
+
+	if len(a:after) > 0 && (a:after[0] == ")" || a:after[0] == "]")
+		return s:js_empty()
+	end
+
+	let lastList = [ "(", "=", ">" ]
+	let lastMap = {}
+	for i in lastList
+		let lastMap[i] = 1
+	endfor
+	if get(lastMap, before[-1:], 0)
 		return s:js_empty()
 	end
 
@@ -128,13 +138,17 @@ func! s:js(before)
 	let keywordList = [
 		\ "function", "if", "else", "while", "for", "catch", "let", "class",
 		\ "const", "export", "finally", "import", "return", "switch",
-		\ "try", "var", "module", "async",
+		\ "try", "var",
 	\]
 	let keywordMap = {}
 	for i in keywordList
 		let keywordMap[i] = 1
 	endfor
 	if get(keywordMap, list[0], 0)
+		return s:js_empty()
+	end
+
+	if list[0] == "async" && len(list) > 1 && list[1] == "function"
 		return s:js_empty()
 	end
 
@@ -146,14 +160,6 @@ func! s:js(before)
 	if get(firstMap, before[0], 0)
 		return s:js_empty()
 	end
-
-	" list.map(item => {},)
-	" test() {},
-
-	" let last = before[-1:]
-	" if last == ")" || last == ">"
-		" return s:js_empty()
-	" end
 
 	return s:js_comma()
 endf
@@ -279,7 +285,7 @@ func! AutoPairsInsert(key)
 
 	" in js file, when insert "{" automatically insert "}," in certain conditions
 	if a:key == "{" && (&filetype == 'javascript' || &filetype == 'vue')
-		return s:js(before)
+		return s:js(before, after)
 	end
 
 	" check open pairs
@@ -480,15 +486,10 @@ func! AutoPairsReturn()
 				return "\<ESC>".cmd."O"
 			endif
 
-			" conflict with javascript and coffee
-			" javascript   need   indent new line
-			" coffeescript forbid indent new line
-			if &filetype == 'coffeescript' || &filetype == 'coffee'
-				return "\<ESC>".cmd."k==o"
-			else
-				" return "\<ESC>".cmd."=ko"
-				return "\<BS>\<ESC>O"
+			if close == "]" || close == ")"
+				return "\<ESC>O\<Tab>"
 			endif
+			return "\<BS>\<ESC>O"
 		end
 	endfor
 	return ''
