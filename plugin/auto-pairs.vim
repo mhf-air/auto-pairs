@@ -114,6 +114,58 @@ let s:Right = s:Go."\<RIGHT>"
 
 
 
+func! s:js(before)
+	let before = trim(a:before)
+	if before[-1:] == "("
+		return s:js_empty()
+	end
+
+	let list = split(before, '\W\+')
+	if len(list) == 0
+		return s:js_comma()
+	end
+
+	let keywordList = [
+		\ "function", "if", "else", "while", "for", "catch", "let", "class",
+		\ "const", "export", "finally", "import", "return", "switch",
+		\ "try", "var", "module", "async",
+	\]
+	let keywordMap = {}
+	for i in keywordList
+		let keywordMap[i] = 1
+	endfor
+	if get(keywordMap, list[0], 0)
+		return s:js_empty()
+	end
+
+	let firstList = [ ".", "&", "}", ]
+	let firstMap = {}
+	for i in firstList
+		let firstMap[i] = 1
+	endfor
+	if get(firstMap, before[0], 0)
+		return s:js_empty()
+	end
+
+	" list.map(item => {},)
+	" test() {},
+
+	" let last = before[-1:]
+	" if last == ")" || last == ">"
+		" return s:js_empty()
+	" end
+
+	return s:js_comma()
+endf
+
+func! s:js_comma()
+	return "{},".s:left("},")
+endf
+func! s:js_empty()
+	return "{}".s:left("}")
+endf
+
+
 
 " unicode len
 func! s:ulen(s)
@@ -225,8 +277,9 @@ func! AutoPairsInsert(key)
 		end
 	end
 
-	if &filetype == 'javascript' || &filetype == 'vue'
-		return ms
+	" in js file, when insert "{" automatically insert "}," in certain conditions
+	if a:key == "{" && (&filetype == 'javascript' || &filetype == 'vue')
+		return s:js(before)
 	end
 
 	" check open pairs
