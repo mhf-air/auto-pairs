@@ -486,7 +486,7 @@ func! AutoPairsReturn()
 				return "\<ESC>".cmd."O"
 			endif
 
-			if close == "]" || close == ")"
+			if close == "]" || close == ")" || close == '"'
 				return "\<ESC>O\<Tab>"
 			endif
 			return "\<BS>\<ESC>O"
