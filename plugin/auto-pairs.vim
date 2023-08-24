@@ -165,7 +165,9 @@ func! s:js(before, after)
 endf
 
 func! s:js_comma()
-	return "{},".s:left("},")
+	" use "{}" in vue 3, "{}," in vue 2
+	" return "{},".s:left("},")
+	return "{}".s:left("}")
 endf
 func! s:js_empty()
 	return "{}".s:left("}")
@@ -296,8 +298,8 @@ func! AutoPairsInsert(key)
 			" process the open pair
 
 			" remove inserted pair
-			" eg: if the pairs include < > and  <!-- --> 
-			" when <!-- is detected the inserted pair < > should be clean up 
+			" eg: if the pairs include < > and  <!-- -->
+			" when <!-- is detected the inserted pair < > should be clean up
 			let target = ms[1]
 			let openPair = ms[2]
 			if len(openPair) == 1 && m == openPair
@@ -574,7 +576,7 @@ func! AutoPairsInit()
 			let opt['multiline'] = 0
 		end
 		let m = matchlist(close, '\v(.*)//(.*)$')
-		if len(m) > 0 
+		if len(m) > 0
 			if m[2] =~ 'n'
 				let opt['mapclose'] = 0
 			end
